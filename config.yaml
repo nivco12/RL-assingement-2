@@ -1,0 +1,7 @@
+gamma: 0.9 # Discount factor 
+alpha: 0.1 # Learning rate
+epsilon: 0.1 # Exploration rate
+theta: 1e-4  # Convergence threshold for DP
+lambda: 0.8
+episodes: 200
+max_steps: 200
