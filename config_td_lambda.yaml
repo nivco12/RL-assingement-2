@@ -1,0 +1,6 @@
+gamma: 0.9
+alpha: 0.1
+epsilon: 0.1
+lambda: [0.2, 0.5, 0.8]  # TD(lambda) values to try
+episodes: 100
+max_steps: 100
