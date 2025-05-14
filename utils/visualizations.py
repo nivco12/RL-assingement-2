@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.colors import ListedColormap
 import numpy as np
+import pandas as pd
 
 
 
@@ -58,3 +59,51 @@ def plot_value_map(env, V, title="State Value Function"):
     plt.title(title)
     plt.axis('off')
     plt.show()
+
+
+
+
+def show_runtime_table(runtime_dp, runtime_mc, runtime_td0, runtime_q, runtime_sarsa, runtimes_td_lambda):
+    """
+    Displays a sorted runtime comparison table for all RL algorithms.
+    
+    Parameters:
+        runtime_dp (float): Runtime of Dynamic Programming
+        runtime_mc (float): Runtime of Monte Carlo
+        runtime_td0 (float): Runtime of TD(0)
+        runtime_q (float): Runtime of Q-learning
+        runtime_sarsa (float): Runtime of SARSA
+        runtimes_td_lambda (list of float): List of runtimes for TD(λ) with λ = [0.2, 0.5, 0.8]
+    """
+    
+    algo_names = [
+        "DP",
+        "Monte Carlo",
+        "TD(0)",
+        "Q-learning",
+        "SARSA",
+        "TD(λ=0.2)",
+        "TD(λ=0.5)",
+        "TD(λ=0.8)"
+    ]
+
+    algo_runtimes = [
+        runtime_dp,
+        runtime_mc,
+        runtime_td0,
+        runtime_q,
+        runtime_sarsa,
+        runtimes_td_lambda[0],
+        runtimes_td_lambda[1],
+        runtimes_td_lambda[2]
+    ]
+
+    timing_df = pd.DataFrame({
+        "Algorithm": algo_names,
+        "Runtime (seconds)": algo_runtimes
+    })
+
+    timing_df = timing_df.sort_values("Runtime (seconds)", ascending=True).reset_index(drop=True)
+
+    print("### Runtimes of the Algorithms (from Fastest to Slowest):")
+    return timing_df
