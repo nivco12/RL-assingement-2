@@ -5,67 +5,56 @@ def load_config(path="config.yaml"):
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
-def train_td_lambda(env, config_path="config_td_lambda.yaml"):
+def train_td_lambda(env, lambd, config_path="config.yaml"):
     cfg = load_config(config_path)
     gamma = cfg["gamma"]
     alpha = cfg["alpha"]
-    lambdas = cfg["lambda"]
     episodes = cfg["episodes"]
     max_steps = cfg["max_steps"]
 
-    if isinstance(lambdas, float) or isinstance(lambdas, int):
-        lambdas = [lambdas]
+    n_states = env.observation_space.n
+    V = np.zeros(n_states)
+    reward_per_episode = []
+    convergence_episode = None
+    prev_V = V.copy()
 
-    all_results = []
+    for ep in range(episodes):
+        state = env.reset()
+        E = np.zeros(n_states)  # Eligibility trace
+        total_reward = 0
 
-    for lambd in lambdas:
-        print(f"Training TD(λ) with λ = {lambd}")
-        n_states = env.observation_space.n
-        V = np.zeros(n_states)
-        reward_per_episode = []
-        convergence_episode = None
+        for _ in range(max_steps):
+            action = env.action_space.sample()  # on-policy (random)
+            next_state, reward, done, _ = env.step(action)
+            total_reward += reward
+
+            delta = reward + gamma * V[next_state] - V[state]
+            E[state] += 1
+
+            V += alpha * delta * E
+            E *= gamma * lambd
+
+            state = next_state
+            if done:
+                break
+
+        reward_per_episode.append(total_reward)
+
+        if np.allclose(V, prev_V, atol=1e-4) and convergence_episode is None:
+            convergence_episode = ep
         prev_V = V.copy()
 
-        for ep in range(episodes):
-            state = env.reset()
-            E = np.zeros(n_states)  # Eligibility trace
-            total_reward = 0
+    if convergence_episode is None:
+        convergence_episode = episodes
 
-            for _ in range(max_steps):
-                action = env.action_space.sample()  # On-policy (random)
-                next_state, reward, done, _ = env.step(action)
-                total_reward += reward
+    policy = extract_policy(env, V, gamma)
 
-                delta = reward + gamma * V[next_state] - V[state]
-                E[state] += 1
-
-                # Update all states
-                V += alpha * delta * E
-                E *= gamma * lambd
-
-                state = next_state
-                if done:
-                    break
-
-            reward_per_episode.append(total_reward)
-
-            if np.allclose(V, prev_V, atol=1e-4) and convergence_episode is None:
-                convergence_episode = ep
-            prev_V = V.copy()
-
-        if convergence_episode is None:
-            convergence_episode = episodes
-
-        policy = extract_policy(env, V, gamma)
-        all_results.append({
-            "lambda": lambd,
-            "policy": policy,
-            "value_table": V.copy(),
-            "rewards": reward_per_episode,
-            "convergence_ep": convergence_episode
-        })
-
-    return all_results
+    return {
+        "policy": policy,
+        "value_table": V,
+        "rewards": reward_per_episode,
+        "convergence_ep": convergence_episode
+    }
 
 def extract_policy(env, V, gamma):
     n_states = env.observation_space.n
