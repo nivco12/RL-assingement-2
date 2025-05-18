@@ -107,3 +107,45 @@ def show_runtime_table(runtime_dp, runtime_mc, runtime_td0, runtime_q, runtime_s
 
     print("### Runtimes of the Algorithms (from Fastest to Slowest):")
     return timing_df
+
+
+
+
+
+def show_avg_reward_table(avg_reward_dp, avg_reward_mc, avg_reward_td0, avg_reward_q, avg_reward_sarsa, avg_rewards_td_lambda):
+    """
+    Displays a sorted runtime comparison table for all RL algorithms.
+    
+    """
+    
+    algo_names = [
+        "DP",
+        "Monte Carlo",
+        "TD(0)",
+        "Q-learning",
+        "SARSA",
+        "TD(λ=0.2)",
+        "TD(λ=0.5)",
+        "TD(λ=0.8)"
+    ]
+
+    algo_avg_rewards = [
+        avg_reward_dp,
+        avg_reward_mc,
+        avg_reward_td0,
+        avg_reward_q,
+        avg_reward_sarsa,
+        avg_rewards_td_lambda[0],
+        avg_rewards_td_lambda[1],
+        avg_rewards_td_lambda[2]
+    ]
+
+    rewards_df = pd.DataFrame({
+        "Algorithm": algo_names,
+        "Runtime (seconds)": algo_avg_rewards
+    })
+
+    rewards_df = rewards_df.sort_values("Runtime (seconds)", ascending=True).reset_index(drop=True)
+
+    print("### Average rewards of the Algorithms ")
+    return rewards_df
